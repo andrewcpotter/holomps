@@ -1,7 +1,7 @@
-import jax.numpy as np
+import jax.numpy as jnp
 from jax.scipy.linalg import expm
 from jax import jit
-import numpy as onp
+import numpy as np
 from functools import partial
 
 class Circuit:
@@ -16,7 +16,7 @@ class Circuit:
         The quantum gates comprising the circuit. After assembly, this consists of GateLayers
         which themselves contain the actual gates.
     n_params: int
-        The number of gate parameters in the circuit. Only set after the circuit is assembled.
+        The number of free gate parameters in the circuit. Only set after the circuit is assembled.
     """
     
     def __init__(self, register):
@@ -32,7 +32,7 @@ class Circuit:
         self.gates = []
         self.n_params = None
         
-    def add_gate(self, gate_type, qids):
+    def add_gate(self, gate_type, qids, n_params=None, fn=None):
         """
         Add a gate to the circuit. Note that the ordering of qids is important for
         multi-qudit gates. For a SNAP gate, the first qudit id refers to the qubit,
@@ -46,42 +46,72 @@ class Circuit:
             The qudit labels that this gate acts on. Qudits are labelled by their index in
             the register (starting at 0). If qids=(1,3,4), then this gate acts on qudits
             1, 3, and 4.
+        n_params: int (optional)
+            The number of free real-valued parameters this gate requires. An arbitrary qubit
+            rotation requires 3 real params, whereas a fixed rotation around a fixed axis
+            (e.g. an X gate) requires 0 free params. If this argument is unspecified, it takes
+            the native value for the gate_type specified. The native gate parameters are
+            documented for each gate. If this argument is specified, the fn argument must also
+            be specified.
+        fn: function (optional)
+            A function whose input is a list slice (length=n_params) of the relevant parameters
+            from the parameter vector, processes them, and outputs an ndarray that
+            represents the native parameter values for the gate. If this argument is 
+            unspecified, the native parameters used are taken directly from the parameter
+            vector. The native gate parameters are documented for each gate. If this argument
+            is specified, the n_params argument must also be specified.
         """
         if type(qids) is int:
             qids = (qids,)
         for qid in qids:
             assert qid < len(self.regInfo.register), "Invalid qudit_id"
+        out = None
+        if n_params!=None or fn!=None:
+            assert n_params!=None and fn!=None, "Must specify both n_params and fn (or neither)"
+            try:
+                out = fn(np.zeros(n_params))
+            except:
+                assert False, "n_params doesn't match supplied fn"
         gate_type = gate_type.lower()
         gate = None
         if gate_type == "rotation":
             assert len(qids) == 1, "Rotation gate must act on exactly 1 qubit"
             qid = qids[0]
             assert self.regInfo.register[qid] == 2, "Rotation qubit should have 2 levels"
-            gate = RotGate(qid)
+            if fn==None:
+                gate = RotGate(qid)
+            else:
+                assert len(out) == 3, "fn for Rotation gate must output 3 parameters"
+                gate = RotGate(qid, n_params, fn)
         elif gate_type == "displacement":
             assert len(qids) == 1, "Displacement gate must act on exactly 1 qudit"
             qid = qids[0]
             dim = self.regInfo.register[qid]
-            assert dim >= 3, "Cavity should have at least 3 levels"
-            gate = DispGate(qid, dim)
+            assert dim >= 2, "Cavity should have at least 2 levels"
+            if fn==None:
+                gate = DispGate(dim, qid)
+            else:
+                assert len(out) == 2, "fn for Displacement gate must output 2 real parameters"
+                gate = DispGate(dim, qid, n_params, fn)
         elif gate_type == "snap":
             assert len(qids) == 2, "SNAP gate must act on exactly 2 qudits"
             qubit_id, cavity_id = qids
             assert self.regInfo.register[qubit_id] == 2, "SNAP qubit should have 2 levels"
-            assert self.regInfo.register[cavity_id] >= 3, "SNAP cavity should have at least 3 levels"
+            assert self.regInfo.register[cavity_id] >= 2, "SNAP cavity should have at least 2 levels"
             dim = self.regInfo.register[qubit_id] * self.regInfo.register[cavity_id]
-            gate = SNAPGate(qubit_id, cavity_id, dim)
-        else:
-            assert False, "Invalid gate type."
-        if gate is not None:
-            self.gates.append(gate)
+            if fn==None:
+                gate = SNAPGate(dim, qubit_id, cavity_id)
+            else:
+                assert len(out) == dim//2, "fn for SNAP gate must output dim/2 parameters"
+                gate = SNAPGate(dim, qubit_id, cavity_id, n_params, fn)
+        assert gate!=None, "Invalid gate type."
+        self.gates.append(gate)
 
     def assemble(self):
         """
         Assemble the circuit to make it ready for evaluation. Organizes the gates into
-        layers using a simple non-overlap scheme, assigns each gate a region of the
-        parameter vector, and fills "incomplete" layers with identity gates. Note that
-        after assembly, the 
+        layers using a simple non-overlap scheme, assigns each gate a subset of the
+        parameter vector, and fills "incomplete" layers with identity gates.
         """
         # fill out the current layer and append it to the list of layers.
         def complete(layer):
@@ -90,7 +120,7 @@ class Circuit:
             # fill the layer with identity gates for each unused qudit
             for qid in unused:
                 dim = self.regInfo.register[qid]
-                layer.append(Gate(dim, [qid], 0))
+                layer.append(Gate(dim, [qid]))
             layers.append(GateLayer(gates=layer, regInfo=self.regInfo))
         
         layers = []
@@ -136,11 +166,11 @@ class Circuit:
         2D ndarray. A unitary matrix representing the circuit.
         """
         assert len(params) == self.n_params
-        mat = np.eye(self.regInfo.dim)
+        mat = jnp.eye(self.regInfo.dim)
         for layer in self.gates:
             g = layer.gate(params)
             # reverse since operators act right-to-left
-            mat = np.matmul(g, mat)
+            mat = jnp.matmul(g, mat)
         return mat
 
 class RegisterInfo:
@@ -158,14 +188,14 @@ class RegisterInfo:
     shape: list
         The qudit-indexed shape of a unitary tensor acting on the register
     ids: iterator
-        The labels for each of the qudits. Given by range(len(register))
+        The labels for each of the qudits. Given by list(range(len(register)))
     """
     
     def __init__(self, register):
         self.register = list(register)
-        self.dim = np.prod(register)
+        self.dim = jnp.prod(register)
         self.shape = self.register + self.register
-        self.ids = range(len(self.register))
+        self.ids = list(range(len(self.register)))
 
 class Gate:
     """
@@ -175,7 +205,7 @@ class Gate:
     as possible.
     """
     
-    def __init__(self, dim, qids, n_params=0):
+    def __init__(self, dim, qids, n_params=0, fn=lambda x:x):
         """
         Parameters
         ----------
@@ -185,7 +215,12 @@ class Gate:
         qids: list
             A list of the qudit labels (in the parent circuit) that this gate acts on
         n_params: int
-            The number of parameters this gate requires
+            The number of free parameters this gate requires
+        fn: function
+            A function whose input is a list slice of the relevant parameters
+            from the parameter vector, processes them, and outputs an ndarray that
+            represents the actual parameters for the gate. Note that the length of the
+            input list slice should match n_params.
         """
         self.dim = dim
         self.qudit_ids = qids
@@ -193,6 +228,10 @@ class Gate:
         # param_ind: where in the parameter vector to look for relevant params
         # this is currently set during circuit assembly
         self.param_ind = None
+        self.process = fn
+        
+    def extract(self, params):
+        return params[self.param_ind:self.param_ind+self.n_params]
         
     def gate(self, params):
         """
@@ -202,56 +241,72 @@ class Gate:
             The full parameter vector. Each gate should use its param_ind to locate the
             relevant parameters.
         """
-        return np.eye(self.dim)
+        return jnp.eye(self.dim)
 
 class RotGate(Gate):
+    """
+    An arbitrary qubit rotation. Natively, it is parametrized by three real parameters:
+    theta (the polar angle of the rotation axis), phi (azimuthal angle of rotation axis),
+    and rotangle (the angle of rotation around the rotation axis). If fn is specified, it
+    should return an unpackable object: theta, phi, rotangle = fn(param_vec_slice)
+    """
     
-    def __init__(self, qubit_id):
-        super().__init__(dim=2, qids=[qubit_id], n_params=3)
-        self.paulix = np.array([[0, 1],[1, 0]])
-        self.pauliy = np.array([[0,-1j],[1j, 0]])
-        self.pauliz = np.array([[1, 0],[0,-1]])
+    def __init__(self, qubit_id, n_params=3, fn=lambda x:x):
+        super().__init__(dim=2, qids=[qubit_id], n_params=n_params, fn=fn)
+        self.paulix = jnp.array([[0, 1],[1, 0]])
+        self.pauliy = jnp.array([[0,-1j],[1j, 0]])
+        self.pauliz = jnp.array([[1, 0],[0,-1]])            
 
     def gate(self, params):
         # get relevant params from param vector
-        ind = self.param_ind
-        theta, phi, rotangle = params[ind:ind+self.n_params]
+        theta, phi, rotangle = self.process(self.extract(params))
         # use cayley-hamilton theorem for variant form of rotation operator
         # https://arxiv.org/pdf/1402.3541.pdf
-        inS = 1j * (np.sin(theta)*np.cos(phi)*self.paulix + \
-                    np.sin(theta)*np.sin(phi)*self.pauliy + \
-                    np.cos(theta)*self.pauliz)
-        return np.cos(rotangle/2)*np.eye(2) + np.sin(rotangle/2)*inS
+        # sin term has minus sign bc operator is exp(-i theta nS)
+        inS = 1j * (jnp.sin(theta)*jnp.cos(phi)*self.paulix + \
+                    jnp.sin(theta)*jnp.sin(phi)*self.pauliy + \
+                    jnp.cos(theta)*self.pauliz)
+        return jnp.cos(rotangle/2)*jnp.eye(2) - jnp.sin(rotangle/2)*inS
     
 class DispGate(Gate):
+    """
+    An arbitrary cavity displacement. Natively, it is parametrized by two real parameters:
+    a (the real part of the displacement) and b (the imaginary part). If fn is specified,
+    it should return an unpackable object: a, b = fn(param_vec_slice)
+    """
     
-    def __init__(self, cavity_id, dim):
-        super().__init__(dim, qids=[cavity_id], n_params=2)
-        # hard code the creation and annihilation operators
-        self.cr = onp.zeros((self.dim, self.dim))
-        self.an = onp.zeros((self.dim, self.dim))
+    def __init__(self, dim, cavity_id, n_params=2, fn=lambda x:x):
+        super().__init__(dim, qids=[cavity_id], n_params=n_params, fn=fn)
+        # hard-code the creation and annihilation operators
+        self.cr = np.zeros((self.dim, self.dim))
+        self.an = np.zeros((self.dim, self.dim))
         for i in range(self.dim-1):
-            self.cr[i+1, i] = onp.sqrt(i+1)
-            self.an[i, i+1] = onp.sqrt(i+1)
+            self.cr[i+1, i] = np.sqrt(i+1)
+            self.an[i, i+1] = np.sqrt(i+1)
     
     def gate(self, params):
-        ind = self.param_ind
-        a, b = params[ind:ind+self.n_params]
+        a, b = self.process(self.extract(params))
         alpha = a + b*1j
         astar = alpha.conjugate()
         return expm(alpha*self.cr - astar*self.an)
 
 class SNAPGate(Gate):
+    """
+    A selective number-dependent arbitrary phase gate. Natively, it is parametrized by
+    d real parameters, where d is the dimension of the cavity. If fn is specified,
+    it should return a 1D ndarray of length d: theta_vec = fn(param_vec_slice)
+    """
     
-    def __init__(self, qubit_id, cavity_id, dim):
+    def __init__(self, dim, qubit_id, cavity_id, n_params=None, fn=lambda x:x):
+        if n_params is None:
+            n_params = dim//2
         qids = [qubit_id, cavity_id]
-        super().__init__(dim, qids, n_params=dim//2)
+        super().__init__(dim, qids, n_params=n_params, fn=fn)
     
     def gate(self, params):
-        ind = self.param_ind
-        theta = params[ind:ind+self.n_params]
-        diag = np.exp(np.concatenate((1j*theta, -1j*theta)))
-        return np.diag(diag)
+        theta = self.process(self.extract(params))
+        diag = jnp.exp(jnp.concatenate((1j*theta, -1j*theta)))
+        return jnp.diag(diag)
 
 class GateLayer(Gate):
     
@@ -274,13 +329,13 @@ class GateLayer(Gate):
         mat = 1
         for g in self.gates:
             g = g.gate(params)
-            mat = np.kron(mat, g)
+            mat = jnp.kron(mat, g)
         # if we have interleaved gates (i.e. a gate acting on qudit #1 and #3 but not #2)
         # then we need to un-permute the indices
         # NOTE: this hasn't been tested so idk if this is right
         if self.permuted != self.regInfo.ids:
             # reshape 2D unitary into qudit indices
             mat = mat.reshape(self.regInfo.shape)
-            mat = np.moveaxis(mat, self.permuted, self.regInfo.ids)
+            mat = jnp.moveaxis(mat, self.permuted, self.regInfo.ids)
             mat = mat.reshape((self.regInfo.dim, self.regInfo.dim))
         return mat
