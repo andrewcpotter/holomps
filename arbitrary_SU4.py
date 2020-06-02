@@ -18,15 +18,15 @@ def cav_xrot(params):
 # treat the cavity as a qubit and do an arbitrary Y rotation
 def cav_yrot(params):
     theta = params[0]
-    return (-theta/2, 0)
+    return (theta/2, 0)
 # treat the cavity as a qubit and rotate from Z to X
-def cav_zx(params): return (0, -np.pi/4)
+def cav_zx(params): return (np.pi/4, 0)
 # treat the cavity as a qubit and rotate from X to Z
-def cav_xz(params): return (0, np.pi/4)
+def cav_xz(params): return (-np.pi/4, 0)
 # treat the cavity as a qubit and rotate from Z to Y
-def cav_zy(params): return (-np.pi/4, 0)
+def cav_zy(params): return (0, -np.pi/4)
 # treat the cavity as a qubit and rotate from Y to Z
-def cav_yz(params): return (np.pi/4, 0)
+def cav_yz(params): return (0, np.pi/4)
 # rotate qubit from Z to X
 def qub_zx(params): return (np.pi/2, np.pi/2, np.pi/2)
 # rotate qubit from X to Z
@@ -40,53 +40,54 @@ def snap_zz(params):
     theta = params[0]
     return jnp.array([theta, -theta])
 
-c = Circuit([2, 2])
+if __name__ == "__main__":
+    c = Circuit([2, 2])
 
-# arbitrary one-qubit rotations
-c.add_gate("rotation", qids=0)
-c.add_gate("displacement", qids=1, n_params=1, fn=cav_xrot)
-c.add_gate("displacement", qids=1, n_params=1, fn=cav_yrot)
-c.add_gate("displacement", qids=1, n_params=1, fn=cav_xrot)
+    # arbitrary one-qubit rotations
+    c.add_gate("rotation", qids=0)
+    c.add_gate("displacement", qids=1, n_params=1, fn=cav_xrot)
+    c.add_gate("displacement", qids=1, n_params=1, fn=cav_yrot)
+    c.add_gate("displacement", qids=1, n_params=1, fn=cav_xrot)
 
-# ZZ rotation
-c.add_gate("snap", qids=[0, 1], n_params=1, fn=snap_zz)
+    # ZZ rotation
+    c.add_gate("snap", qids=[0, 1], n_params=1, fn=snap_zz)
 
-# XX rotation
-c.add_gate("rotation", qids=0, n_params=0, fn=qub_zx)
-c.add_gate("displacement", qids=1, n_params=0, fn=cav_zx)
-c.add_gate("snap", qids=[0, 1], n_params=1, fn=snap_zz)
-c.add_gate("rotation", qids=0, n_params=0, fn=qub_xz)
-c.add_gate("displacement", qids=1, n_params=0, fn=cav_xz)
+    # XX rotation
+    c.add_gate("rotation", qids=0, n_params=0, fn=qub_zx)
+    c.add_gate("displacement", qids=1, n_params=0, fn=cav_zx)
+    c.add_gate("snap", qids=[0, 1], n_params=1, fn=snap_zz)
+    c.add_gate("rotation", qids=0, n_params=0, fn=qub_xz)
+    c.add_gate("displacement", qids=1, n_params=0, fn=cav_xz)
 
-# YY rotation
-c.add_gate("rotation", qids=0, n_params=0, fn=qub_zy)
-c.add_gate("displacement", qids=1, n_params=0, fn=cav_zy)
-c.add_gate("snap", qids=[0, 1], n_params=1, fn=snap_zz)
-c.add_gate("rotation", qids=0, n_params=0, fn=qub_yz)
-c.add_gate("displacement", qids=1, n_params=0, fn=cav_yz)
+    # YY rotation
+    c.add_gate("rotation", qids=0, n_params=0, fn=qub_zy)
+    c.add_gate("displacement", qids=1, n_params=0, fn=cav_zy)
+    c.add_gate("snap", qids=[0, 1], n_params=1, fn=snap_zz)
+    c.add_gate("rotation", qids=0, n_params=0, fn=qub_yz)
+    c.add_gate("displacement", qids=1, n_params=0, fn=cav_yz)
 
-# arbitrary one-qubit rotations
-c.add_gate("rotation", qids=0)
-c.add_gate("displacement", qids=1, n_params=1, fn=cav_xrot)
-c.add_gate("displacement", qids=1, n_params=1, fn=cav_yrot)
-c.add_gate("displacement", qids=1, n_params=1, fn=cav_xrot)
+    # arbitrary one-qubit rotations
+    c.add_gate("rotation", qids=0)
+    c.add_gate("displacement", qids=1, n_params=1, fn=cav_xrot)
+    c.add_gate("displacement", qids=1, n_params=1, fn=cav_yrot)
+    c.add_gate("displacement", qids=1, n_params=1, fn=cav_xrot)
 
 
-np.set_printoptions(precision=3)
-np.set_printoptions(suppress=True)
+    np.set_printoptions(precision=3)
+    np.set_printoptions(suppress=True)
 
-c.assemble()
-print()
-print("num free params: {}".format(c.n_params))
-print()
+    c.assemble()
+    print()
+    print("num free params: {}".format(c.n_params))
+    print()
 
-params = np.random.rand(c.n_params)*10-5
-print("param vector:\n{}".format(params))
-print()
+    params = np.random.rand(c.n_params)*10-5
+    print("param vector:\n{}".format(params))
+    print()
 
-u = c.evaluate(params)
-print("resulting unitary:\n{}".format(u))
-print()
+    u = c.evaluate(params)
+    print("resulting unitary:\n{}".format(u))
+    print()
 
-check_unitary(u)
-print("Generated a valid unitary!")
+    check_unitary(u)
+    print("Generated a valid unitary!")

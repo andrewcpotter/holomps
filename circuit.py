@@ -262,10 +262,11 @@ class RotGate(Gate):
         theta, phi, rotangle = self.process(self.extract(params))
         # use cayley-hamilton theorem for variant form of rotation operator
         # https://arxiv.org/pdf/1402.3541.pdf
+        # sin term has minus sign bc operator is exp(-i theta nS)
         inS = 1j * (jnp.sin(theta)*jnp.cos(phi)*self.paulix + \
                     jnp.sin(theta)*jnp.sin(phi)*self.pauliy + \
                     jnp.cos(theta)*self.pauliz)
-        return jnp.cos(rotangle/2)*jnp.eye(2) + jnp.sin(rotangle/2)*inS
+        return jnp.cos(rotangle/2)*jnp.eye(2) - jnp.sin(rotangle/2)*inS
     
 class DispGate(Gate):
     """
