@@ -49,22 +49,22 @@ if __name__ == "__main__":
     c.add_gate("displacement", qids=1, n_params=1, fn=cav_yrot)
     c.add_gate("displacement", qids=1, n_params=1, fn=cav_xrot)
 
-    # ZZ rotation
-    c.add_gate("snap", qids=[0, 1], n_params=1, fn=snap_zz)
-
     # XX rotation
-    c.add_gate("rotation", qids=0, n_params=0, fn=qub_zx)
-    c.add_gate("displacement", qids=1, n_params=0, fn=cav_zx)
-    c.add_gate("snap", qids=[0, 1], n_params=1, fn=snap_zz)
     c.add_gate("rotation", qids=0, n_params=0, fn=qub_xz)
     c.add_gate("displacement", qids=1, n_params=0, fn=cav_xz)
+    c.add_gate("snap", qids=[0, 1], n_params=1, fn=snap_zz)
+    c.add_gate("rotation", qids=0, n_params=0, fn=qub_zx)
+    c.add_gate("displacement", qids=1, n_params=0, fn=cav_zx)
 
     # YY rotation
-    c.add_gate("rotation", qids=0, n_params=0, fn=qub_zy)
-    c.add_gate("displacement", qids=1, n_params=0, fn=cav_zy)
-    c.add_gate("snap", qids=[0, 1], n_params=1, fn=snap_zz)
     c.add_gate("rotation", qids=0, n_params=0, fn=qub_yz)
     c.add_gate("displacement", qids=1, n_params=0, fn=cav_yz)
+    c.add_gate("snap", qids=[0, 1], n_params=1, fn=snap_zz)
+    c.add_gate("rotation", qids=0, n_params=0, fn=qub_zy)
+    c.add_gate("displacement", qids=1, n_params=0, fn=cav_zy)
+
+    # ZZ rotation
+    c.add_gate("snap", qids=[0, 1], n_params=1, fn=snap_zz)
 
     # arbitrary one-qubit rotations
     c.add_gate("rotation", qids=0)
