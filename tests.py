@@ -11,15 +11,28 @@ def check_unitary(u):
 
 def circuit_tests():
     print("TEST: Unitarity")
-    c = Circuit([2, 10])
+    c = Circuit([("qubit", "p", 2),
+                ("cavity", "b", 3),
+                ("cavity", "p", 4),
+                ("qubit", "b", 2)])
     for i in range(30):
-        rnd = np.random.randint(1, 4)
+        rnd = np.random.randint(1, 9)
         if rnd == 1:
-            c.add_gate("rotation", 0)
+            c.add_gate("rotation", qids=[0])
         if rnd == 2:
-            c.add_gate("displacement", 1)
+            c.add_gate("displacement", qids=[1])
         if rnd == 3:
-            c.add_gate("snap", (0, 1))
+            c.add_gate("snap", qids=[0, 1])
+        if rnd == 4:
+            c.add_gate("snap", qids=[0, 2])
+        if rnd == 5:
+            c.add_gate("rotation", qids=[3])
+        if rnd == 6:
+            c.add_gate("displacement", qids=[2])
+        if rnd == 7:
+            c.add_gate("snap", qids=[3, 1])
+        if rnd == 8:
+            c.add_gate("snap", qids=[3, 2])
     c.assemble()
     params = np.random.rand(c.n_params)*10-5
     check_unitary(c.evaluate(params))
@@ -27,17 +40,38 @@ def circuit_tests():
 
     print("TEST: Identity circuit")
     params = np.zeros(c.n_params)
-    assert (np.eye(c.regInfo.dim) == c.evaluate(params)).all()
+    eye = np.eye(c.regInfo.dim)
+    assert np.allclose(c.evaluate(params), eye, atol=1e-5)
+    print("PASS\n")
+
+    print("TEST: Tensor indexing 1")
+    tensor = c.get_tensor(params)
+    assert tensor.shape == (8, 6, 8, 6)
+    print("PASS\n")
+
+    print("TEST: Tensor indexing 2")
+    c = Circuit([("qubit", "p", 2),
+                ("cavity", "b", 10)])
+    c.add_gate("displacement")
+    c.add_gate("snap")
+    c.add_gate("displacement")
+    c.add_gate("snap")
+    c.assemble()
+    params = np.random.rand(c.n_params)*10-5
+    tensor = c.get_tensor(params)
+    assert (tensor[0, :, 1, :] == np.zeros((10, 10))).all()
+    assert (tensor[1, :, 0, :] == np.zeros((10, 10))).all()
     print("PASS\n")
 
     print("TEST: Fock state creation")
-    c = Circuit([2, 10])
-    c.add_gate("displacement", 1)
+    c = Circuit([("qubit", "p", 2),
+                ("cavity", "b", 10)])
+    c.add_gate("displacement")
     p1 = np.array([1.14, 0])
-    c.add_gate("snap", [0, 1])
+    c.add_gate("snap")
     p2 = np.zeros(10)
     p2[0] = np.pi
-    c.add_gate("displacement", 1)
+    c.add_gate("displacement")
     p3 = np.array([-0.58, 0])
     c.assemble()
     params = np.concatenate((p1, p2, p3))
@@ -56,8 +90,8 @@ def arbitrary_su4_tests():
     pauliz = np.array([[1, 0], [0, -1]])
 
     print("TEST: cav_xrot")
-    c = Circuit([2])
-    c.add_gate("displacement", qids=0, n_params=1, fn=cav_xrot)
+    c = Circuit([("cavity", 'p', 2)])
+    c.add_gate("displacement", n_params=1, fn=cav_xrot)
     c.assemble()
     for i in range(10):
         theta = rng.uniform(high=2*np.pi)
@@ -66,8 +100,8 @@ def arbitrary_su4_tests():
     print("PASS\n")
     
     print("TEST: cav_yrot")
-    c = Circuit([2])
-    c.add_gate("displacement", qids=0, n_params=1, fn=cav_yrot)
+    c = Circuit([("cavity", 'p', 2)])
+    c.add_gate("displacement", n_params=1, fn=cav_yrot)
     c.assemble()
     for i in range(10):
         theta = rng.uniform(high=2*np.pi)
@@ -80,76 +114,77 @@ def arbitrary_su4_tests():
     print("PASS\n")
 
     print("TEST: cav_zx")
-    c = Circuit([2])
-    c.add_gate("displacement", qids=0, n_params=0, fn=cav_zx)
+    c = Circuit([("cavity", 'p', 2)])
+    c.add_gate("displacement", n_params=0, fn=cav_zx)
     c.assemble()
     u = c.evaluate(np.array([]))
     assert np.allclose(u, zx, atol=1e-5)
     print("PASS\n")
 
     print("TEST: cav_xz")
-    c = Circuit([2])
-    c.add_gate("displacement", qids=0, n_params=0, fn=cav_zx)
-    c.add_gate("displacement", qids=0, n_params=0, fn=cav_xz)
+    c = Circuit([("cavity", 'p', 2)])
+    c.add_gate("displacement", n_params=0, fn=cav_zx)
+    c.add_gate("displacement", n_params=0, fn=cav_xz)
     c.assemble()
     u = c.evaluate(np.array([]))
     assert np.allclose(u, eye, atol=1e-5)
     print("PASS\n")
 
     print("TEST: cav_zy")
-    c = Circuit([2])
-    c.add_gate("displacement", qids=0, n_params=0, fn=cav_zy)
+    c = Circuit([("cavity", 'p', 2)])
+    c.add_gate("displacement", n_params=0, fn=cav_zy)
     c.assemble()
     u = c.evaluate(np.array([]))
     assert np.allclose(u, zy, atol=1e-5)
     print("PASS\n")
 
     print("TEST: cav_yz")
-    c = Circuit([2])
-    c.add_gate("displacement", qids=0, n_params=0, fn=cav_zy)
-    c.add_gate("displacement", qids=0, n_params=0, fn=cav_yz)
+    c = Circuit([("cavity", 'p', 2)])
+    c.add_gate("displacement", n_params=0, fn=cav_zy)
+    c.add_gate("displacement", n_params=0, fn=cav_yz)
     c.assemble()
     u = c.evaluate(np.array([]))
     assert np.allclose(u, eye, atol=1e-5)
     print("PASS\n")
 
     print("TEST: qub_zx")
-    c = Circuit([2])
-    c.add_gate("rotation", qids=0, n_params=0, fn=qub_zx)
+    c = Circuit([("qubit", 'p', 2)])
+    c.add_gate("rotation", n_params=0, fn=qub_zx)
     c.assemble()
     u = c.evaluate(np.array([]))
     assert np.allclose(u, zx, atol=1e-5)
     print("PASS\n")
 
     print("TEST: qub_xz")
-    c = Circuit([2])
-    c.add_gate("rotation", qids=0, n_params=0, fn=qub_zx)
-    c.add_gate("rotation", qids=0, n_params=0, fn=qub_xz)
+    c = Circuit([("qubit", 'p', 2)])
+    c.add_gate("rotation", n_params=0, fn=qub_zx)
+    c.add_gate("rotation", n_params=0, fn=qub_xz)
     c.assemble()
     u = c.evaluate(np.array([]))
     assert np.allclose(u, eye, atol=1e-5)
     print("PASS\n")
 
     print("TEST: qub_zy")
-    c = Circuit([2])
-    c.add_gate("rotation", qids=0, n_params=0, fn=qub_zy)
+    c = Circuit([("qubit", 'p', 2)])
+    c.add_gate("rotation", n_params=0, fn=qub_zy)
     c.assemble()
     u = c.evaluate(np.array([]))
     assert np.allclose(u, zy, atol=1e-5)
     print("PASS\n")
 
     print("TEST: qub_yz")
-    c = Circuit([2])
-    c.add_gate("rotation", qids=0, n_params=0, fn=qub_zy)
-    c.add_gate("rotation", qids=0, n_params=0, fn=qub_yz)
+    c = Circuit([("qubit", 'p', 2)])
+    c.add_gate("rotation", n_params=0, fn=qub_zy)
+    c.add_gate("rotation", n_params=0, fn=qub_yz)
     c.assemble()
     u = c.evaluate(np.array([]))
     assert np.allclose(u, eye, atol=1e-5)
     print("PASS\n")
 
     print("TEST: snap_zz")
-    c = Circuit([2, 2])
-    c.add_gate("snap", qids=[0, 1], n_params=1, fn=snap_zz)
+    c = Circuit([("qubit", 'p', 2),
+                 ("cavity", 'b', 2)])
+    c.add_gate("snap", n_params=1, fn=snap_zz)
     c.assemble()
     zz = np.kron(pauliz, pauliz)
     for i in range(10):

@@ -1,7 +1,6 @@
 import jax.numpy as jnp
 import numpy as np
 from circuit import Circuit
-from test import check_unitary
 
 """
 These function definitions are used to restrict the behavior of gates we use.
@@ -41,36 +40,37 @@ def snap_zz(params):
     return jnp.array([theta, -theta])
 
 if __name__ == "__main__":
-    c = Circuit([2, 2])
+    c = Circuit([("qubit", "p", 2),
+                 ("cavity", "b", 2)])
 
     # arbitrary one-qubit rotations
-    c.add_gate("rotation", qids=0)
-    c.add_gate("displacement", qids=1, n_params=1, fn=cav_xrot)
-    c.add_gate("displacement", qids=1, n_params=1, fn=cav_yrot)
-    c.add_gate("displacement", qids=1, n_params=1, fn=cav_xrot)
+    c.add_gate("rotation")
+    c.add_gate("displacement", n_params=1, fn=cav_xrot)
+    c.add_gate("displacement", n_params=1, fn=cav_yrot)
+    c.add_gate("displacement", n_params=1, fn=cav_xrot)
 
     # XX rotation
-    c.add_gate("rotation", qids=0, n_params=0, fn=qub_xz)
-    c.add_gate("displacement", qids=1, n_params=0, fn=cav_xz)
-    c.add_gate("snap", qids=[0, 1], n_params=1, fn=snap_zz)
-    c.add_gate("rotation", qids=0, n_params=0, fn=qub_zx)
-    c.add_gate("displacement", qids=1, n_params=0, fn=cav_zx)
+    c.add_gate("rotation", n_params=0, fn=qub_xz)
+    c.add_gate("displacement", n_params=0, fn=cav_xz)
+    c.add_gate("snap", n_params=1, fn=snap_zz)
+    c.add_gate("rotation", n_params=0, fn=qub_zx)
+    c.add_gate("displacement", n_params=0, fn=cav_zx)
 
     # YY rotation
-    c.add_gate("rotation", qids=0, n_params=0, fn=qub_yz)
-    c.add_gate("displacement", qids=1, n_params=0, fn=cav_yz)
-    c.add_gate("snap", qids=[0, 1], n_params=1, fn=snap_zz)
-    c.add_gate("rotation", qids=0, n_params=0, fn=qub_zy)
-    c.add_gate("displacement", qids=1, n_params=0, fn=cav_zy)
+    c.add_gate("rotation", n_params=0, fn=qub_yz)
+    c.add_gate("displacement", n_params=0, fn=cav_yz)
+    c.add_gate("snap", n_params=1, fn=snap_zz)
+    c.add_gate("rotation", n_params=0, fn=qub_zy)
+    c.add_gate("displacement", n_params=0, fn=cav_zy)
 
     # ZZ rotation
-    c.add_gate("snap", qids=[0, 1], n_params=1, fn=snap_zz)
+    c.add_gate("snap", n_params=1, fn=snap_zz)
 
     # arbitrary one-qubit rotations
-    c.add_gate("rotation", qids=0)
-    c.add_gate("displacement", qids=1, n_params=1, fn=cav_xrot)
-    c.add_gate("displacement", qids=1, n_params=1, fn=cav_yrot)
-    c.add_gate("displacement", qids=1, n_params=1, fn=cav_xrot)
+    c.add_gate("rotation")
+    c.add_gate("displacement", n_params=1, fn=cav_xrot)
+    c.add_gate("displacement", n_params=1, fn=cav_yrot)
+    c.add_gate("displacement", n_params=1, fn=cav_xrot)
 
 
     np.set_printoptions(precision=3)
@@ -89,5 +89,7 @@ if __name__ == "__main__":
     print("resulting unitary:\n{}".format(u))
     print()
 
-    check_unitary(u)
-    print("Generated a valid unitary!")
+    tensor = c.get_tensor(params)
+    print("resulting tensor:\n{}".format(tensor))
+    print()
+    print("tensor shape:\n{}".format(tensor.shape))
