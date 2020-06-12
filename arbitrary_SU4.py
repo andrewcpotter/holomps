@@ -1,4 +1,3 @@
-import jax.numpy as jnp
 import numpy as np
 from circuit import Circuit
 
@@ -37,7 +36,7 @@ def qub_yz(params): return (np.pi/2, 0, -np.pi/2)
 # SNAP equivalent of exp(i theta ZZ)
 def snap_zz(params):
     theta = params[0]
-    return jnp.array([theta, -theta])
+    return [theta, -theta]
 
 if __name__ == "__main__":
     c = Circuit([("qubit", "p", 2),
