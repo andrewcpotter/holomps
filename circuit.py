@@ -233,7 +233,7 @@ class RegisterInfo:
     qudit_levels: list
         Each entry is an int corresponding to the local dimension (# of levels)
         in the corresponding quantum resource (i.e. 2 for a qubit).
-    qudit_type: list
+    qudit_types: list
         Each entry is a str (one of either "qubit" or "cavity") encoding the type of
         each quantum resource
     dim: int
@@ -272,8 +272,8 @@ class RegisterInfo:
         permutes = phys_inds + bond_inds
         assert len(permutes) == len(register_info), "Every qudit must be designated either 'p' or 'b'"
         self.tensor_permutes = permutes + [len(permutes) + qid for qid in permutes]
-        phys_dim = np.prod([self.qudit_levels[i] for i in phys_inds])
-        bond_dim = np.prod([self.qudit_levels[i] for i in bond_inds])
+        phys_dim = int(np.prod([self.qudit_levels[i] for i in phys_inds]))
+        bond_dim = int(np.prod([self.qudit_levels[i] for i in bond_inds]))
         self.tensor_shape = (phys_dim, bond_dim, phys_dim, bond_dim)
 
 
@@ -385,6 +385,7 @@ class SNAPGate(Gate):
     
     def gate(self, params):
         theta = self.process(self.extract(params))
+        theta = jnp.array(theta)
         diag = jnp.exp(jnp.concatenate((1j*theta, -1j*theta)))
         return jnp.diag(diag)
 
