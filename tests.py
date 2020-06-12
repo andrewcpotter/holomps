@@ -10,13 +10,14 @@ def check_unitary(u):
     assert np.allclose(udagu, eye, atol=1e-5)
 
 def circuit_tests():
+    rng = np.random.default_rng() 
     print("TEST: Unitarity")
     c = Circuit([("qubit", "p", 2),
                 ("cavity", "b", 3),
                 ("cavity", "p", 4),
                 ("qubit", "b", 2)])
     for i in range(30):
-        rnd = np.random.randint(1, 9)
+        rnd = rng.integers(low=1, high=8, endpoint=True)
         if rnd == 1:
             c.add_gate("rotation", qids=[0])
         if rnd == 2:
@@ -34,7 +35,7 @@ def circuit_tests():
         if rnd == 8:
             c.add_gate("snap", qids=[3, 2])
     c.assemble()
-    params = np.random.rand(c.n_params)*10-5
+    params = rng.uniform(high=2*np.pi, size=c.n_params)
     check_unitary(c.evaluate(params))
     print("PASS\n")
 
@@ -57,7 +58,7 @@ def circuit_tests():
     c.add_gate("displacement")
     c.add_gate("snap")
     c.assemble()
-    params = np.random.rand(c.n_params)*10-5
+    params = rng.uniform(high=2*np.pi, size=c.n_params)
     tensor = c.get_tensor(params)
     assert (tensor[0, :, 1, :] == np.zeros((10, 10))).all()
     assert (tensor[1, :, 0, :] == np.zeros((10, 10))).all()
@@ -107,11 +108,11 @@ def arbitrary_su4_tests():
         theta = rng.uniform(high=2*np.pi)
         u = c.evaluate(np.array([theta]))
         assert np.allclose(u, expm(-1j * theta/2 * pauliy), atol=1e-5)
+    print("PASS\n")
     
     zx = expm(-1j * np.pi/4 * pauliy)
     zy = expm(-1j * np.pi/4 * paulix)
     eye = np.eye(2)
-    print("PASS\n")
 
     print("TEST: cav_zx")
     c = Circuit([("cavity", 'p', 2)])
