@@ -80,7 +80,8 @@ if __name__ == "__main__":
     print("num free params: {}".format(c.n_params))
     print()
 
-    params = np.random.rand(c.n_params)*10-5
+    rng = np.random.default_rng()
+    params = rng.uniform(high=2*np.pi, size=c.n_params)
     print("param vector:\n{}".format(params))
     print()
 
