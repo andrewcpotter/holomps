@@ -2,6 +2,7 @@ import time
 import numpy as np
 from circuit_qubit import Circuit
 from mps_stuff import ising_impo, circuit_imps
+#from tenpy.models.tf_ising import TFIModel
 #from qubit_circuit_with_JW1 import *
 
 from scipy.optimize import minimize
@@ -19,7 +20,9 @@ def qub_z(params): return (0, 0, params[0])
 def qub_two(params): return (params[0])
 
 # one qubit rotation
-c.add_gate("rotation", qids = [0])
+c.add_gate("rotation", qids = [0], n_params = 1, fn = qub_x)
+c.add_gate("rotation", qids = [0], n_params = 1, fn = qub_y)
+c.add_gate("rotation", qids = [0], n_params = 1, fn = qub_z)
 
 c.add_gate("rotation", qids = [1], n_params = 1, fn = qub_x)
 c.add_gate("rotation", qids = [1], n_params = 1, fn = qub_y)
@@ -36,7 +39,9 @@ c.add_gate("ZZ", qids=[0, 1], n_params = 1, fn = qub_two)
 
 
 # one qubit rotation
-c.add_gate("rotation", qids = [0])
+c.add_gate("rotation", qids = [0], n_params = 1, fn = qub_x)
+c.add_gate("rotation", qids = [0], n_params = 1, fn = qub_y)
+c.add_gate("rotation", qids = [0], n_params = 1, fn = qub_z)
 
 c.add_gate("rotation", qids = [1], n_params = 1, fn = qub_x)
 c.add_gate("rotation", qids = [1], n_params = 1, fn = qub_y)
