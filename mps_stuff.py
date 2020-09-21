@@ -3,7 +3,7 @@
 """
 Created on Sat Jun  6 14:52:28 2020
 
-@author: Aaron (tensor shit) , Dhruva (gates stuff)
+@author: Aaron (tensor stuff) , Dhruva (gates stuff)
 """
 from tenpy.networks.site import SpinHalfSite
 from tenpy.networks.mpo import MPO
