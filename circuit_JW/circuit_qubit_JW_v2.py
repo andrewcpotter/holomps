@@ -77,7 +77,7 @@ class Circuit:
         gate_type = gate_type.lower().strip()
         reg_levels = self.regInfo.qudit_levels
         reg_types = self.regInfo.qudit_types
-        if gate_type not in ["rotation", "xx", "yy", "zz", "xx_yy"]:
+        if gate_type not in ["rotation", "xx", "yy", "zz", "xx_yy", "xx_yy_jw"]:
             assert False, "Invalid gate type."
         for qid in qids:
             assert type(qid)==int, "qids must be int"
@@ -91,6 +91,7 @@ class Circuit:
             except:
                 assert False, "n_params doesn't match supplied fn"
         gate = None
+        gate_list = []
         if gate_type == "rotation":
             if qids == []:
                 assert reg_types.count("qubit") == 1, "Must specify rotation qubit qid"
@@ -102,19 +103,31 @@ class Circuit:
             else:
                 assert len(out) == 3, "fn for Rotation gate must output 3 parameters"
                 gate = RotGate(qids, n_params, fn)
-        elif gate_type == "xx":
-            gate = XXGate(qids, n_params, fn)
-        elif gate_type == "yy":
-            gate = YYGate(qids, n_params, fn)
+            gate_list.append(gate)
+        # elif gate_type == "xx":
+            # gate = XXGate(qids, n_params, fn)
+            # gate_list.append(gate)
+        # elif gate_type == "yy":
+            # gate = YYGate(qids, n_params, fn)
+            # gate_list.append(gate)
         elif gate_type == "zz":
             gate = ZZGate(qids, n_params, fn)
+            gate_list.append(gate)
         elif gate_type == "xx_yy":
+            def qub_z_JW(params): return (0, 0, np.pi)
             gate = XXGate(qids, n_params, fn)
             gate1 = YYGate(qids, n_params, fn)
-        assert gate != None
-        self.gates.append(gate)
-        if gate_type == "xx_yy":
-            self.gates.append(gate1)
+            gate_list.append(gate)
+            for i in range(qids[0]+1, qids[1]):
+                gate_JW = PauliZ_Gate(i, 0, qub_z_JW)
+                gate_list.append(gate_JW)
+            gate_list.append(gate1)
+            for i in range(qids[0]+1, qids[1]):
+                gate_JW = PauliZ_Gate(i, 0, qub_z_JW)
+                gate_list.append(gate_JW)
+
+        for gate in gate_list:
+            self.gates.append(gate)
 
     def assemble(self):
         """
@@ -330,8 +343,19 @@ class RotGate(Gate):
                     jnp.sin(theta)*jnp.sin(phi)*self.pauliy + \
                     jnp.cos(theta)*self.pauliz)
         return jnp.cos(rotangle/2)*jnp.eye(2) - jnp.sin(rotangle/2)*inS
+        
+class PauliZ_Gate(Gate):
+    def __init__(self, qids, n_params=0, fn=lambda x:x):
+        super().__init__(dim=2, qids=qids, n_params=n_params, fn=fn)
+        self.paulix = jnp.array([[0, 1],[1, 0]])
+        self.pauliy = jnp.array([[0,-1j],[1j, 0]])
+        self.pauliz = jnp.array([[1, 0],[0,-1]])
+        
+    def gate(self, params):
+        return self.pauliz
     
 class XXGate(Gate):
+# should be renamed XX_jw_Gate
     '''
 	XX gate acts on two qubits, so qids must be a length-2 list, which specifies the qubits
 	this gate acts on. only one parameter, which is the rotangle. for reference of the
@@ -339,6 +363,7 @@ class XXGate(Gate):
 	'''
     def __init__(self, qids, n_params=1, fn=lambda x:x):
         super().__init__(dim=2, qids=qids, n_params=n_params, fn=fn)
+        self.Ijw = jnp.array([[1,0,0,0],[0,-1,0,0],[0,0,1,0],[0,0,0,1]])
         self.xx = jnp.array([[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]])
 
     def gate(self, params):
@@ -346,9 +371,10 @@ class XXGate(Gate):
         rotangle = self.process(self.extract(params))
         # use cayley-hamilton theorem for variant form of rotation operator
         # https://arxiv.org/pdf/1402.3541.pdf
-        return jnp.cos(rotangle)*jnp.eye(4) - jnp.sin(rotangle)*1j * self.xx
+        return jnp.cos(rotangle)*self.Ijw - jnp.sin(rotangle)*1j * self.xx
 
 class YYGate(Gate):
+# should be renamed YY_jw_Gate
     '''
 	YY gate acts on two qubits, so qids must be a length-2 list, which specifies the qubits
 	this gate acts on. only one parameter, which is the rotangle. for reference of the
@@ -356,6 +382,7 @@ class YYGate(Gate):
 	'''
     def __init__(self, qids, n_params=1, fn=lambda x:x):
         super().__init__(dim=2, qids=qids, n_params=n_params, fn=fn)
+        self.Ijw = jnp.array([[1,0,0,0],[0,-1,0,0],[0,0,1,0],[0,0,0,1]])
         self.yy = jnp.array([[0, 0, 0, 1], [0, 0, -1, 0], [0, -1, 0, 0], [1, 0, 0, 0]])
 
     def gate(self, params):
@@ -364,8 +391,17 @@ class YYGate(Gate):
         # use cayley-hamilton theorem for variant form of rotation operator
         # https://arxiv.org/pdf/1402.3541.pdf
         # sin term has minus sign bc operator is exp(-i theta nS)
-        return jnp.cos(rotangle)*jnp.eye(4) + jnp.sin(rotangle) * self.yy
-		
+        return jnp.cos(rotangle)*self.Ijw + jnp.sin(rotangle) * self.yy
+
+# class XX_YYGate(Gate):
+    # def __init__(self, qids, n_params=1, fn=lambda x:x):
+        # super().__init__(dim=2, qids=qids, n_params=n_params, fn=fn)
+        # self.xx = jnp.array([[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]])
+        # self.yy = jnp.array([[0, 0, 0, 1], [0, 0, -1, 0], [0, -1, 0, 0], [1, 0, 0, 0]])
+    # def gate(self, params):
+        # rotangle = self.process(self.extract(params))
+        # return jnp.matmul(jnp.cos(rotangle)*jnp.eye(4) - jnp.sin(rotangle)*1j * self.xx, jnp.cos(rotangle)*jnp.eye(4) + jnp.sin(rotangle) * self.yy)
+
 class ZZGate(Gate): 
     '''
 	ZZ gate acts on two qubits, so qids must be a length-2 list, which specifies the qubits

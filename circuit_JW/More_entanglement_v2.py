@@ -1,6 +1,6 @@
 import time
 import numpy as np
-from circuit_qubit import Circuit
+from circuit_qubit_JW_v2 import Circuit
 from tenpy.networks.mps import MPS
 from tenpy.networks.site import SpinHalfFermionSite
 from tenpy.models.hubbard import FermiHubbardModel, FermiHubbardChain
