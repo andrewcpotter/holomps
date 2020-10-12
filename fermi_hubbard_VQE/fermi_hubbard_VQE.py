@@ -34,9 +34,15 @@ def fh_VQE(t_value, U_value, mu_value, ansatz_type, optimizer_choice, global_ite
         ("qubit", "b", chimax), ("qubit", "b", chimax)])
         c = fully_connected_circuit(c)
         c1 = fully_connected_circuit(c1)
+    elif ansatz_type == 3:
+        c = Circuit([("qubit", "p", d), ("qubit", "p", d), ("qubit", "b", chimax), ("qubit", "b", chimax)])
+        c1 = Circuit([("qubit", "p", d), ("qubit", "p", d), ("qubit", "b", chimax), ("qubit", "b", chimax)])
+        c = bond_4_easy(c)
+        c1 = bond_4_easy(c1)
 
     rng = np.random.default_rng()
     params = rng.uniform(high=2*np.pi, size=c.n_params + c1.n_params)
+    print(len(params))
     psi = circuit_imps(params, c, c1)
     print("norm of wave function = {0}".format(psi.norm))
     model_params = dict(L=2, t=t_value, U=U_value, mu=mu_value, bc_MPS="infinite", cons_N = None, cons_Sz=None, verbose=0)

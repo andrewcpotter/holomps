@@ -122,6 +122,7 @@ def fermi_hubbard_half_filling_more_entanglement(t_value, U_value, mu_value, ans
 
     rng = np.random.default_rng()
     params = rng.uniform(high=2*np.pi, size=c.n_params + c1.n_params)
+    print(len(params))
     psi = circuit_imps(params, c, c1)
     print("norm of wave function = {0}".format(psi.norm))
     model_params = dict(L=2, t=t_value, U=U_value, mu=mu_value, bc_MPS="infinite", cons_N = None, cons_Sz=None, verbose=0)

@@ -3,7 +3,7 @@ from circuit_qubit import Circuit
 def qub_x(params): return (np.pi/2, 0, params[0])
 def qub_y(params): return (np.pi/2, np.pi/2, params[0])
 def qub_z(params): return (0, 0, params[0])
-def qub_two(params): return (params[0])
+#def qub_two(params): return (params[0])
 
 # c is a circuit object
 # site_list is a length 4 list, it includes the qubit indices which the gates in this ansatz act on
@@ -12,6 +12,7 @@ def bond_4_optimize_type(c, site_list):
     s1 = site_list[1]
     s2 = site_list[2]
     s3 = site_list[3]
+    def qub_two(params): return (params[0])
     # rotation Z gate on one physical qubit
     #c.add_gate("rotation", qids = [s0], n_params = 1, fn = qub_z)
     

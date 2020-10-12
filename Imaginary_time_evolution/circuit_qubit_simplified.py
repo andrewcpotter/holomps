@@ -77,7 +77,7 @@ class Circuit:
         gate_type = gate_type.lower().strip()
         reg_levels = self.regInfo.qudit_levels
         reg_types = self.regInfo.qudit_types
-        if gate_type not in ["rotation", "xx", "yy", "zz", "xx_yy"]:
+        if gate_type not in ["rotation", "xx", "yy", "zz", "xy_yx", "xx_yy"]:
             assert False, "Invalid gate type."
         for qid in qids:
             assert type(qid)==int, "qids must be int"
@@ -91,7 +91,6 @@ class Circuit:
             except:
                 assert False, "n_params doesn't match supplied fn"
         gate = None
-        gate_list = []
         if gate_type == "rotation":
             if qids == []:
                 assert reg_types.count("qubit") == 1, "Must specify rotation qubit qid"
@@ -103,24 +102,18 @@ class Circuit:
             else:
                 assert len(out) == 3, "fn for Rotation gate must output 3 parameters"
                 gate = RotGate(qids, n_params, fn)
-            gate_list.append(gate)
-        # elif gate_type == "xx":
-            # gate = XXGate(qids, n_params, fn)
-        # elif gate_type == "yy":
-            # gate = YYGate(qids, n_params, fn)
+        elif gate_type == "xx":
+            gate = XXGate(qids, n_params, fn)
+        elif gate_type == "yy":
+            gate = YYGate(qids, n_params, fn)
         elif gate_type == "zz":
             gate = ZZGate(qids, n_params, fn)
-            gate_list.append(gate)
+        elif gate_type == "xy_yx":
+            gate = XY_YXGate(qids, n_params, fn)
         elif gate_type == "xx_yy":
             gate = XX_YYGate(qids, n_params, fn)
-            gate_list.append(gate)
-            # gate = XXGate(qids, n_params, fn)
-            # gate1 = YYGate(qids, n_params, fn)
-            # gate_list.append(gate)
-            # gate_list.append(gate1)
         assert gate != None
-        for gate in gate_list:
-            self.gates.append(gate)
+        self.gates.append(gate)
 
     def assemble(self):
         """
@@ -371,16 +364,7 @@ class YYGate(Gate):
         # https://arxiv.org/pdf/1402.3541.pdf
         # sin term has minus sign bc operator is exp(-i theta nS)
         return jnp.cos(rotangle)*jnp.eye(4) + jnp.sin(rotangle) * self.yy
-        
-class XX_YYGate(Gate):
-    def __init__(self, qids, n_params=1, fn=lambda x:x):
-        super().__init__(dim=2, qids=qids, n_params=n_params, fn=fn)
-        self.xx = jnp.array([[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]])
-        self.yy = jnp.array([[0, 0, 0, 1], [0, 0, -1, 0], [0, -1, 0, 0], [1, 0, 0, 0]])
-    def gate(self, params):
-        rotangle = self.process(self.extract(params))
-        return jnp.matmul(jnp.cos(rotangle)*jnp.eye(4) - jnp.sin(rotangle)*1j * self.xx, jnp.cos(rotangle)*jnp.eye(4) + jnp.sin(rotangle) * self.yy)
-		
+
 class ZZGate(Gate): 
     '''
 	ZZ gate acts on two qubits, so qids must be a length-2 list, which specifies the qubits
@@ -398,6 +382,7 @@ class ZZGate(Gate):
         # https://arxiv.org/pdf/1402.3541.pdf
         # sin term has minus sign bc operator is exp(-i theta nS)
         return jnp.cos(rotangle / 2)*jnp.eye(4) + jnp.sin(rotangle / 2)*1j * self.zz
+
 
 class GateLayer(Gate):
     
