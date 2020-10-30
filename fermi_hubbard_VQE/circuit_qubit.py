@@ -370,7 +370,7 @@ class YYGate(Gate):
         # use cayley-hamilton theorem for variant form of rotation operator
         # https://arxiv.org/pdf/1402.3541.pdf
         # sin term has minus sign bc operator is exp(-i theta nS)
-        return jnp.cos(rotangle)*jnp.eye(4) + jnp.sin(rotangle) * self.yy
+        return jnp.cos(rotangle)*jnp.eye(4) + 1j * jnp.sin(rotangle) * self.yy
         
 class XX_YYGate(Gate):
     def __init__(self, qids, n_params=1, fn=lambda x:x):
@@ -379,7 +379,7 @@ class XX_YYGate(Gate):
         self.yy = jnp.array([[0, 0, 0, 1], [0, 0, -1, 0], [0, -1, 0, 0], [1, 0, 0, 0]])
     def gate(self, params):
         rotangle = self.process(self.extract(params))
-        return jnp.matmul(jnp.cos(rotangle)*jnp.eye(4) - jnp.sin(rotangle)*1j * self.xx, jnp.cos(rotangle)*jnp.eye(4) + jnp.sin(rotangle) * self.yy)
+        return jnp.matmul(jnp.cos(rotangle)*jnp.eye(4) - jnp.sin(rotangle)*1j * self.xx, jnp.cos(rotangle)*jnp.eye(4) + 1j * jnp.sin(rotangle) * self.yy)
 		
 class ZZGate(Gate): 
     '''

@@ -1,4 +1,4 @@
-from fermi_hubbard_VQE import fh_VQE
+from fermi_hubbard_VQE_new import fh_VQE
 import numpy as np
 (E1, filling_gs, sweet_spot) = fh_VQE(1, 8, 0, 0, 0, 100, 20, False, 1)
 print(E1, filling_gs)
