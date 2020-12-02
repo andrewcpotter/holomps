@@ -89,9 +89,9 @@ H_mat = ising_mpo(J, g, L2)
 F_random = thermal_state.free_energy(c,'random state', L2, H_mat, params, T, prob_list=None, bdry_vecs1=None, bdry_vecs2=None)
 
 
-# Theoretical predictions for ferromagnetic case (applications of Jordan-Wigner transformation)
+# Theoretical predictions for ferromagnetic case (applications of Jordan-Wigner transformations)
 # for more details see https://arxiv.org/pdf/1707.02400.pdf
-# k-values for periodic and anti-periodic boundary conditions (PBC and APBC)
+# k-values (momenta) for periodic and anti-periodic boundary conditions (PBC and APBC)
 a_list = [] # for APBC
 p_list = [] # for PBC
 for j in range(1,L):
