@@ -16,7 +16,7 @@ class thermal_state(object):
         Parameters
         --------------
         L: int
-            Length (number) of repetitions of of unit cell in the main chain.
+            Length (number) of repetitions of the unit cell in the main chain.
             (set to infinity by default for infinite chain)
         tensor: numpy.array
             Bulk rank-4 tensors of the main chain.
@@ -41,7 +41,7 @@ class thermal_state(object):
         output:
         A two-element list where the first element includes the list of 
         probabilities of each site in the MPS, and the second element 
-        includes the constructed state itself.
+        consists of the constructed state itself.
         """              
         tensor = self.get_tensor(params)
         d = tensor[:,0,0,0].size # physical leg dimension
@@ -87,7 +87,7 @@ class thermal_state(object):
              Length (number) of repetitions of unit cell in the main chain.   
           bdry_vecs: list
             List of left (first element) and right (second element) boundary vectors.
-            (set to [None,None] by default which gives left and right boundary vectors = |0>)
+            (set to [None,None] by default, which gives left and right boundary vectors = |0>)
         """
         tensor_list = L*[self]
         bdry = []
@@ -166,7 +166,7 @@ class thermal_state(object):
         params (optional for 'density matrix'): numpy.array 
             A vector of parameters for the gates. 
         T: float
-           Tempreture of system.
+           Temperature of the system.
         prob_list (optional for 'random'): list 
              List of probabilities of each physical state.
              (length of the list should match the physical leg dimension).
