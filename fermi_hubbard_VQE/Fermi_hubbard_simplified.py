@@ -113,14 +113,14 @@ C_penalty = 20
 # E_dmrg = Hubbard_spinhalf_fermion_dmrg_run(t_value, U_value, mu_value, chi_value)
 # print(E_dmrg)
 
-(E1, filling_gs, sweet_spot) = fh_VQE(1, 8, 0, 20, False, 1)
+(E1, filling_gs, sweet_spot) = fh_VQE(t_value, U_value, mu_value, C_penalty, False, 1)
 print(E1, filling_gs)
 E0 = E1 - 1
 iter = 1
 while abs(E0-E1) > 1e-6:
     E0 = E1
     params_better = sweet_spot
-    (E1, filling_gs, sweet_spot) = fh_VQE(1, 8, 0, 20, True, params_better)
+    (E1, filling_gs, sweet_spot) = fh_VQE(t_value, U_value, mu_value, C_penalty, True, params_better)
     iter = iter + 1
     print(E1, filling_gs)
 print(sweet_spot)
