@@ -18,9 +18,9 @@ def fh_VQE(t_value, U_value, mu_value, C_penalty, params_start_option, params_st
     def qub_y(params): return (np.pi/2, np.pi/2, params[0])
     def qub_z(params): return (0, 0, params[0])
     def qub_two(params): return (params[0])
-
+    
+    # circuits for two-site unit cell:
     c = Circuit([("qubit", "p", d), ("qubit", "p", d), ("qubit", "b", chimax), ("qubit", "b", chimax)])
-    # one qubit rotation
     c.add_gate("rotation", qids = [0], n_params = 1, fn = qub_z)
     c.add_gate("XX_YY", qids=[0, 2], n_params = 1, fn = qub_two)
     c.add_gate("ZZ", qids=[0, 2], n_params = 1, fn = qub_two)
@@ -29,7 +29,6 @@ def fh_VQE(t_value, U_value, mu_value, C_penalty, params_start_option, params_st
     c.add_gate("rotation", qids = [0], n_params = 1, fn = qub_z)
     c.assemble()
 
-# two-site part:
     c1 = Circuit([("qubit", "p", d), ("qubit", "p", d), ("qubit", "b", chimax), ("qubit", "b", chimax)])
     c1.add_gate("rotation", qids = [0], n_params = 1, fn = qub_z)
     c1.add_gate("XX_YY", qids=[0, 2], n_params = 1, fn = qub_two)
