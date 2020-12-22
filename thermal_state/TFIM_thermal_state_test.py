@@ -1,12 +1,14 @@
 
 # Test for free energy calculations of Transverse Field Ising Model (TFIM)
+# bond dimension = 2
 
 import numpy as np
 import random
 from tenpy.networks.site import SpinHalfSite
 from tenpy.networks.mps import MPS
 from tenpy.networks.mpo import MPO
-from circuit_qubit import Circuit
+# import Circuit from circuit_qubit 
+# import free_energy from thermal_state
 
 # Parameters of model
 d = 2
