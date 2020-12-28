@@ -141,8 +141,13 @@ class thermal_state(object):
         
         # the main chain's tensor network and contractions
         TN1 = [np.tensordot(state1[1][j],p_state[j],axes=[2,0]) for j in range(L)]
-        TN2 = [np.tensordot(element,state2[1][k],axes=[2,2]) for element,k in zip(TN1,range(L))]
-        # the boundary contractions
+        # checking the size of the bond dimension of the main tensor (e.g. 2 and 4)
+        if self[0,:,0,0].size == 2:
+            TN2 = [np.tensordot(element,state2[1][k],axes=[2,2]) for element,k in zip(TN1,range(L))]
+        elif self[0,:,0,0].size == 4:       
+            TN2 = [np.tensordot(element,state2[1][k],axes=[2,1]) for element,k in zip(TN1,range(L))]
+        
+        # boundary contractions
         BvL = np.kron(state1[0][0],state2[0][0])
         BvR = np.kron(state1[2][0],state2[2][0])
         
@@ -198,7 +203,11 @@ class thermal_state(object):
             # the network's contractions
             W0 = TN[0]
             for j in range(1,len(TN)):
-                W0 = np.tensordot(W0,TN[j])
+                # checking the size of the bond dimension 
+                if self[0,:,0,0].size == 2:
+                    W0 = np.tensordot(W0,TN[j])
+                elif self[0,:,0,0].size == 4:
+                    W0 = np.tensordot(W0,TN[j],axes=[4,2])
             W1 = np.outer(BL,W0)
             W2 = np.outer(W1,BR)
             
