@@ -3,7 +3,6 @@
 import numpy as np
 import random
 
-
 class thermal_state(object):
     
     """
