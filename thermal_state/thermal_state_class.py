@@ -357,7 +357,7 @@ class thermal_state(object):
                 for j in range(len(tensor_list)):
                     if (tensor == tensor_list[j]).all():
                         count[j] += 1  
-            prob_list= [c/L for c in count]
+            prob_list = [c/L for c in count]
             
             # entropy calculation 
             S = 0
