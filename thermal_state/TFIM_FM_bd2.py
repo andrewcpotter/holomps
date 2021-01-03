@@ -69,7 +69,7 @@ F_density = thermal_state.free_energy(unitary,'density_matrix',L,H,T,prob_list,[
 F_random = thermal_state.free_energy(unitary,'random_state',L,H,T,None,[None,None],[None,None])
 
 # theoretical predictions for ferromagnetic case (applications of Jordan-Wigner transformations)
-# For more details, see  Y. He and H. Guo, J. Stat. Mech. (2017) 093101.
+# for more details, see  Y. He and H. Guo, J. Stat. Mech. (2017) 093101.
 # total number of sites must be even for ferromagnetic case.
 
 # k-values for periodic and anti-periodic boundary conditions (PBC and APBC)
