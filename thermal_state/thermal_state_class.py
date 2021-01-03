@@ -213,7 +213,7 @@ class thermal_state(object):
         else:
             chi_MPO = MPO[1][0][0,:,0,0].size # bond dimension of MPO
             t_mat_site = np.zeros([chi**2 * chi_MPO,chi**2 * chi_MPO]) # transfer matrix at each site
-            t_mat = np.eye(chi**2*chi_MPO,chi**2*chi_MPO,dtype=complex) # total transfer matrix
+            t_mat = np.eye(chi**2 * chi_MPO,chi**2 * chi_MPO,dtype=complex) # total transfer matrix
             
             # site contractions for state/MPO/dual_state
             for j in range(len(self[1])):
