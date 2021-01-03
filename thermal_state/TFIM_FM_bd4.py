@@ -99,8 +99,9 @@ H = np.reshape(-J * np.kron(sigmax, sigmax) - g * np.kron(sigmaz, id),[d, d, d, 
 F_density = thermal_state.free_energy(unitary,'density_matrix',L,H,T,prob_list,[None,None],[None,None])
 F_random = thermal_state.free_energy(unitary,'random_state',L,H,T,None,[None,None],[None,None])
 
-# Theoretical predictions for ferromagnetic case (applications of Jordan-Wigner transformations)
-# For more details, see  Y. He and H. Guo, J. Stat. Mech. (2017) 093101.
+# theoretical predictions for ferromagnetic case (applications of Jordan-Wigner transformations):
+# for more details, see  Y. He and H. Guo, J. Stat. Mech. (2017) 093101.
+# total number of sites must be even for ferromagnetic case.
 
 # k-values for periodic and anti-periodic boundary conditions (PBC and APBC)
 a_list = [] # for APBC
