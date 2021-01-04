@@ -27,7 +27,7 @@ class thermal_state(object):
         self.d = tensor[:,0,0,0].size # physical leg dimension (assumes rank-4 structure)
         self.chi = tensor[0,:,0,0].size # bond leg dimension (assumes rank-4 structure)
         
-    def network_from_cells(self, params, network_type, L, bdry_vecs=[None,None]):      
+    def network_from_cells(self, network_type, L,  params=None, bdry_vecs=[None,None]):      
         """
         Returns network of finite random holo-Matrix Prodcut State (random_holoMPS), finite 
         holo-MPS (circuit_MPS), finite holo-Matrix Prodcut Operator (circuit_MPO), or MPO
@@ -144,7 +144,7 @@ class thermal_state(object):
         
         # if network_type is set to MPO: 
         # this option assumes genuine MPO_based structures (e.g. Hamiltonian MPO)  
-        # only the bulk tensors of the main chain must be included (w/ params=None)
+        # only the bulk tensors of the main chain must be included (w/out params)
         elif network_type == 'MPO':
             
             # tensor dimensions (consistent with rank-4 structure)
@@ -197,11 +197,11 @@ class thermal_state(object):
             raise ValueError('length of probability list should match the physical dimension')      
         
         
-        state1 = thermal_state.network_from_cells(self,params,'circuit_MPO',L,bdry_vecs) # constructing state as MPO
+        state1 = thermal_state.network_from_cells(self,'circuit_MPO',L,params,bdry_vecs) # constructing state as MPO
         # defining and constructing the dual state as MPO
         tensor_conj = unitary.conj()
         bdry_vecs_conj = [state1[0][0].conj(),state1[2][0].conj()] # boundary vectors of dual state  
-        state2 = thermal_state.network_from_cells(tensor_conj,None,'MPO',L,bdry_vecs_conj)
+        state2 = thermal_state.network_from_cells(tensor_conj,'MPO',L,None,bdry_vecs_conj)
         
         # constructing the probability network chain
         p_matrix = np.diag(prob_list)
@@ -353,9 +353,9 @@ class thermal_state(object):
             if len(prob_list) != d:
                 raise ValueError('length of probability list should match the physical dimension')
             
-            # constructing density matrix and Hamiltonian (as MPO)
+            # constructing density matrix and Hamiltonian (as MPO w/ same physical dimension)
             density_mat = thermal_state.density_matrix(self,params,L,prob_list,bdry_vecs1)
-            Hamiltonian = thermal_state.network_from_cells(H_mat,None,'MPO',L,bdry_vecs2)
+            Hamiltonian = thermal_state.network_from_cells(H_mat,'MPO',L,None,bdry_vecs2)
             
             # the main tensor network and boundary vectors' constrcution
             TN = [np.tensordot(Hamiltonian[1][j],density_mat[1][j],axes=[2,0]) for j in range(L)]
@@ -383,9 +383,9 @@ class thermal_state(object):
         # free energy for random-holoMPS state
         elif state_type == 'random_state':
             
-            # constructing random state and Hamiltonian (as MPO)
-            random_state = thermal_state.network_from_cells(self,params,'random_MPS',L,bdry_vecs1)
-            Hamiltonian = thermal_state.network_from_cells(H_mat,None,'MPO',L,bdry_vecs2)
+            # constructing random state and Hamiltonian (as MPO w/ same physical dimension)
+            random_state = thermal_state.network_from_cells(self,'random_MPS',L,params,bdry_vecs1)
+            Hamiltonian = thermal_state.network_from_cells(H_mat,'MPO',L,None,bdry_vecs2)
             
             # tensor dimensions (consistent with rank-3 structure)
             # index ordering consistent with holoMPS structure
