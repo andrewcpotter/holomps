@@ -4,6 +4,7 @@
 
 import numpy as np
 import random
+from scipy.optimize import minimize
 # import Circuit from circuit_qubit 
 # import free_energy from thermal_state
 
@@ -65,8 +66,25 @@ id = np.eye(2)
 H = np.reshape(-J * np.kron(sigmax, sigmax) - g * np.kron(sigmaz, id),[d, d, d, d])
 # prob_list = TBD (should be a list of probabilities for each site (e.g. [p1,...,pn]))
 
-F_density = thermal_state.free_energy(c,params,'density_matrix',L_d,H,T,prob_list,[None,None],[None,None])
-F_random = thermal_state.free_energy(c,params,'random_state',L_d,H,T,prob_list,[None,None],[None,None])
+# method I. direct calculation
+# F_density = thermal_state.free_energy(c,params,'density_matrix',L_d,H,T,prob_list,[None,None],[None,None])
+# F_random = thermal_state.free_energy(c,params,'random_state',L_d,H,T,prob_list,[None,None],[None,None])
+
+# method II. nelder-mead minimization
+# def density_free_energy(params,circuit):
+#     state = thermal_state.free_energy(circuit,params,'density_matrix',L_d,H,T,prob_list,[None,None],[None,None])
+#     return state
+
+# def random_free_energy(params,circuit): 
+#    state = thermal_state.free_energy(c,params,'random_state',L_r,H,T,None,[None,None],[None,None])
+#    return state
+
+# result1 = minimize(density_free_energy,args=(c),x0=params,method='nelder-mead')
+# sweet_spot1 = result1.x
+# result2 = minimize(random_free_energy,args=(c),x0=params,method='nelder-mead')
+# sweet_spot2 = result2.x
+# F_density = density_free_energy(sweet_spot1,c)
+# F_random = random_free_energy(sweet_spot2,c)
 
 # theoretical predictions for ferromagnetic case (applications of Jordan-Wigner transformations)
 # for more details, see  Y. He and H. Guo, J. Stat. Mech. (2017) 093101.
