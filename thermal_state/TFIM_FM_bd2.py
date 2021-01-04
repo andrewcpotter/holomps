@@ -1,4 +1,5 @@
 
+
 # Sample code for Transverse Field Ising Model (TFIM) with bond dimension 2
 
 import numpy as np
@@ -55,7 +56,6 @@ c.assemble()
 # defining state and Hamiltonian 
 rng = np.random.default_rng() 
 params = rng.uniform(high=2*np.pi, size=c.n_params)
-unitary = c.get_tensor(params)
 
 # Pauli matrices and spin operators
 sigmax = np.array([[0., 1], [1, 0.]])
@@ -65,8 +65,8 @@ id = np.eye(2)
 H = np.reshape(-J * np.kron(sigmax, sigmax) - g * np.kron(sigmaz, id),[d, d, d, d])
 # prob_list = TBD (should be a list of probabilities for each site (e.g. [p1,...,pn]))
 
-F_density = thermal_state.free_energy(unitary,'density_matrix',L,H,T,prob_list,[None,None],[None,None])
-F_random = thermal_state.free_energy(unitary,'random_state',L,H,T,None,[None,None],[None,None])
+F_density = thermal_state.free_energy(c,params,'density_matrix',L_d,H,T,prob_list,[None,None],[None,None])
+F_random = thermal_state.free_energy(c,params,'random_state',L_d,H,T,prob_list,[None,None],[None,None])
 
 # theoretical predictions for ferromagnetic case (applications of Jordan-Wigner transformations)
 # for more details, see  Y. He and H. Guo, J. Stat. Mech. (2017) 093101.
