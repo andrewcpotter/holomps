@@ -70,7 +70,7 @@ H = np.reshape(-J * np.kron(sigmax, sigmax) - g * np.kron(sigmaz, id),[d, d, d, 
 # F_density = thermal_state.free_energy(c,params,'density_matrix',L_d,H,T,prob_list,[None,None],[None,None])
 # F_random = thermal_state.free_energy(c,params,'random_state',L_d,H,T,prob_list,[None,None],[None,None])
 
-# method II. nelder-mead minimization
+# method II. nelder-mead minimization method
 # def density_free_energy(params,circuit):
 #     state = thermal_state.free_energy(circuit,params,'density_matrix',L_d,H,T,prob_list,[None,None],[None,None])
 #     return state
