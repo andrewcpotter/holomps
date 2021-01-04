@@ -71,7 +71,7 @@ def density_free_energy(params,circuit):
     return state
 
 def random_free_energy(params,circuit): 
-    state = thermal_state.free_energy(c,params,'random_state',L,H,T,None,[None,None],[None,None])
+    state = thermal_state.free_energy(circuit,params,'random_state',L,H,T,None,[None,None],[None,None])
     return state
 
 # method I. direct calculation
