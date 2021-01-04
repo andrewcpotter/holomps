@@ -4,6 +4,7 @@
 
 import numpy as np
 import random
+from scipy.optimize import minimize
 # import Circuit from circuit_qubit 
 # import free_energy from thermal_state
 
