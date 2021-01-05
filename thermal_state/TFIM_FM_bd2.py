@@ -88,20 +88,20 @@ def random_free_energy(params,circuit):
 
 # theoretical predictions for ferromagnetic case (applications of Jordan-Wigner transformations)
 # for more details, see  Y. He and H. Guo, J. Stat. Mech. (2017) 093101.
-# total number of sites must be even for ferromagnetic case.
+# N = total number of lattice sites (must be even for ferromagnetic case).
 
 # k-values for periodic and anti-periodic boundary conditions (PBC and APBC)
 a_list = [] # for APBC
 p_list = [] # for PBC
-for j in range(1,L):
-    while ((2*j-1)*(np.pi)/L) <= ((L-1)*(np.pi)/L):
-        a_list.append((2*j-1)*(np.pi)/L)
-        a_list.append(-(2*j-1)*(np.pi)/L)
+for j in range(1,N):
+    while ((2*j-1)*(np.pi)/N) <= ((N-1)*(np.pi)/N):
+        a_list.append((2*j-1)*(np.pi)/N)
+        a_list.append(-(2*j-1)*(np.pi)/N)
         break
-for j in range(1,L):
-    while (2*j)*(np.pi)/L <= ((L-2)*(np.pi)/L):
-        p_list.append((2*j)*(np.pi)/L)
-        p_list.append(-(2*j)*(np.pi)/L)
+for j in range(1,N):
+    while (2*j)*(np.pi)/N <= ((N-2)*(np.pi)/N):
+        p_list.append((2*j)*(np.pi)/N)
+        p_list.append(-(2*j)*(np.pi)/N)
         break
 p_list.append(0)
 p_list.append(np.pi)
