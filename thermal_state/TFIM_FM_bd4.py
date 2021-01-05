@@ -105,17 +105,13 @@ def random_free_energy(params,circuit):
     state = thermal_state.free_energy(circuit,params,'random_state',L,H,T,None,[None,None],[None,None])
     return state
 
-# method I. direct calculation
-# F_density = density_free_energy(params,c)
-# F_random = random_free_energy(params,c)
-
-# method II. nelder-mead minimization method
-# result1 = minimize(density_free_energy,args=(c),x0=params,method='nelder-mead')
-# sweet_spot1 = result1.x
-# result2 = minimize(random_free_energy,args=(c),x0=params,method='nelder-mead')
-# sweet_spot2 = result2.x
-# F_density = density_free_energy(sweet_spot1,c)
-# F_random = random_free_energy(sweet_spot2,c)
+# optimization 
+result1 = minimize(density_free_energy,args=(c),x0=params,method='Nelder-Mead')
+sweet_spot1 = result1.x
+result2 = minimize(random_free_energy,args=(c),x0=params,method='Nelder-Mead')
+sweet_spot2 = result2.x
+F_density = density_free_energy(sweet_spot1,c)
+F_random = random_free_energy(sweet_spot2,c)
 
 # theoretical predictions for ferromagnetic case (applications of Jordan-Wigner transformations):
 # for more details, see  Y. He and H. Guo, J. Stat. Mech. (2017) 093101.
