@@ -106,9 +106,9 @@ def random_free_energy(params,circuit):
     return state
 
 # optimization 
-result1 = minimize(density_free_energy,args=(c),x0=params,method='Nelder-Mead')
+result1 = minimize(density_free_energy,args=(c),x0=params,method='TBD')
 sweet_spot1 = result1.x
-result2 = minimize(random_free_energy,args=(c),x0=params,method='Nelder-Mead')
+result2 = minimize(random_free_energy,args=(c),x0=params,method='TBD')
 sweet_spot2 = result2.x
 F_density = density_free_energy(sweet_spot1,c)
 F_random = random_free_energy(sweet_spot2,c)
