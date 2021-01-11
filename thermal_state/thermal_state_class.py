@@ -340,7 +340,7 @@ class thermal_state(object):
             
             for j in range(L):
                 # MPO and density matrix constractions
-                TN1 = np.tensordot(self[1][j],MPO[1][j],axes=[2,0])
+                TN1 = np.tensordot(self[1][j],MPO[1][j],axes=[0,2])
                 t_mat_site = np.reshape(TN1,[chi_tot,chi_tot])         
                 t_mat = t_mat_site @ t_mat # t-mat accumulations
             
