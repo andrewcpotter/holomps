@@ -165,7 +165,7 @@ def theory_free_energy(case_type, N, J, g, T):
                 break
                 
         # periodic boundary condition (PBC) k-values
-        for j in range(1,L):
+        for j in range(1,N):
             while (2*j)*(np.pi)/N <= ((N-1)*(np.pi)/N):
                 p_list.append((2*j)*(np.pi)/N)
                 p_list.append(-(2*j)*(np.pi)/N)
