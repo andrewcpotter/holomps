@@ -519,5 +519,3 @@ class thermal_state(object):
             E = thermal_state.expectation_value(random_state,'random_state',L,chi_H,Hamiltonian) # energy of system    
             F = E - T*S # Helmholtz free energy      
         return F    
-
-    
