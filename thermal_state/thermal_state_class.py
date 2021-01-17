@@ -261,7 +261,7 @@ class thermal_state(object):
         
         # if prob_list set to None (by default):
         elif prob_list == None:
-            prob_list = thermal_state(None,'density_matrix',circuit,params)
+            prob_list = thermal_state.prob_list(None,'density_matrix',self,params)
             
         # constructing state and probability weights network chain (as MPO)
         state = thermal_state.network_from_cells(c,'circuit_MPO',L,None,params,[None,None])
