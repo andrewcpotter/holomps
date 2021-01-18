@@ -211,3 +211,4 @@ F_theory = theory_free_energy(TBD,N,J,g,T)
 print("Density matrix method: F_density = {:.8}".format(F_density))
 print("Random state method: F_random = {:.8}".format(F_random))
 print("Theory: F_theory = {:.8}".format(F_theory))
+
