@@ -61,7 +61,7 @@ class thermal_state(object):
            unit cell). Bulk tensors must be rank-4 numpy.ndarray (consistent with final structure
            of MPO) 
           -Tracing over right boundary for holoMPS-based structures is appropriate for 
-           holographic/sequential-based simulations.   
+           holographic simulations.   
         """
         if network_type != "random_state" and network_type != "circuit_MPS" and network_type != "circuit_MPO" and network_type != "MPO": 
                 raise ValueError('only one of "random_state", "circuit_MPS", "circuit_MPO", "MPO" options')
