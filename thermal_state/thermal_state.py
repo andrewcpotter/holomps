@@ -121,12 +121,8 @@ class thermal_state(object):
             
             # testing boundary conditions 
             bdry = []
-            if network_type == 'random_state' or network_type == 'circuit_MPS': # specific to holoMPS-based structures
-                # if both boundary vectors are specified 
-                for j in range(2):
-                    if np.array(bdry_vecs[j] != None).all() and bdry_vecs[j].size == chi:
-                        bdry.append(bdry_vecs[j])
-                        
+            if network_type == 'random_state' or network_type == 'circuit_MPS': # specific to holoMPS-based structures 
+                
                 # if boundary vectors are not specified for holoMPS-based structures:     
                 # checking left boundary vector
                 # if left boundary vector not specified, set to (1,0,0,0...)
@@ -146,6 +142,11 @@ class thermal_state(object):
                         raise ValueError('right boundary vector different size than bulk tensors')
                     bdry += [bdry_vecs[1]]
                     
+                # if both boundary vectors are specified 
+                for j in range(2):
+                    if np.array(bdry_vecs[j] != None).all() and bdry_vecs[j].size == chi:
+                        bdry.append(bdry_vecs[j]) 
+                        
             elif network_type == 'circuit_MPO': # specific to holoMPO-based structures       
                 for j in range(2):
                     # if both boundary vectors are specified 
