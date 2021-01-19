@@ -90,6 +90,7 @@ def ising_mpo(J, g):
     """
     Unit-cell matrix product operator for Ising model Hamiltonian. 
     Based on TenPy (github.com/tenpy/tenpy/blob/master/toycodes/b_model.py)
+    (index ordering: virutal left, virtual right, physical out, physical in)
     """
     # Pauli matrices and spin operators
     sigmax = np.array([[0., 1], [1, 0.]])
@@ -106,10 +107,9 @@ def ising_mpo(J, g):
     H[1, 2] = -J * Sx
     return H
 
-# original index ordering: virutal left, virtual right, physical out, physical in
-H_mat1 = np.swapaxes(ising_mpo(J,g),0,2) # changing axis ordering to: p_out, b_out, b_in, p_in 
-H_mat2 = np.swapaxes(H_mat1,2,3) # changing axis ordering to: p_out, b_out, p_in, b_in
-chi_H = H_mat2[0,:,0,0].size # size of Hamiltonian bond leg dimension
+# changing axis ordering to: p_out, b_out, p_in, b_in
+H_mat = np.swapaxes(np.swapaxes(ising_mpo(J,g),0,2),2,3)  
+chi_H = H_mat[0,:,0,0].size # size of Hamiltonian bond leg dimension
 # Hamiltonian MPO boundary vectors
 H_bvecl = TBD
 H_bvecr = TBD
@@ -130,7 +130,7 @@ def state_free_energy(params, circuit, state_type):
     circuit: Holographic-based circuit structure.
     state_type: One of "density_matrix" or "random_state" options.       
     """   
-    state = thermal_state.free_energy(circuit,params,state_type,L,H_mat2,T,chi_H,prob_list,bdry_vecs1,bdry_vecs2)  
+    state = thermal_state.free_energy(circuit,params,state_type,L,H_mat,T,chi_H,prob_list,bdry_vecs1,bdry_vecs2)  
     return state
 
 # optimization 
@@ -148,6 +148,8 @@ def theory_free_energy(case_type, N, J, g, T):
     N : total number of lattice sites (must be even/odd for ferromagnetic/anti-ferromagnetic case).
     For more detail, see  Y. He and H. Guo, J. Stat. Mech. (2017) 093101.
     """
+    if case_type != "ferromagnetic" and case_type != "anti-ferromagnetic": 
+        raise ValueError('only one of "ferromagnetic" or "anti-ferromagnetic" options')
     a_list = [] 
     p_list = [] 
     E = lambda J,g,k: np.sqrt((J/2)**2 + g**2 + J*g*np.cos(k)) # dispersion relation
