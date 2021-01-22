@@ -155,7 +155,7 @@ def ising_mpo(J, g):
     H[1, 2] = -J * Sx
     return H
 
-H_mat = ising_mpo(J,g) 
+H_mat = np.swapaxes(np.swapaxes(ising_mpo(J,g),0,2),2,3) # changing axis ordering to: p_out, b_out, p_in, b_in 
 chi_H = H_mat[0,:,0,0].size # size of Hamiltonian bond leg dimension
 # Hamiltonian MPO boundary vectors
 H_bvecl = TBD
