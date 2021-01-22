@@ -1,6 +1,6 @@
 
 # Sample code for Transverse Field Ising Model (TFIM) 
-# density matrix method
+# thermal density matrix method
 
 import numpy as np
 import random
