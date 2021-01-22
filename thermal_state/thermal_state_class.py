@@ -288,17 +288,14 @@ class thermal_state(object):
             W2 = np.swapaxes(W1,0,1) # changing axis ordering to:  p_out, b_out, p'_in, b_in
             #contracting results with dual state
             W3 = np.tensordot(state[1][j].conj(),W2,axes=[2,2]) # contracting p_in and p'_in  
-            contractions.append(W3)
+            contractions.append(np.reshape(W3,[d,chi**2,d,chi**2]))
            
         # boundary contractions
         # state boundary contractions
-        bvecl_s = np.kron(p_state[0][0],state[0][0]) 
-        bvecr_s = np.kron(p_state[2][0],state[2][0])
-        # boundary contractions with dual state 
-        bvecl_tot = np.kron(state[0][0].conj(),bvecl_s) 
-        bvecr_tot = np.kron(state[2][0].conj(),bvecr_s)
-
-        density_matrix = [[bvecl_tot],contractions,[bvecr_tot]]
+        bvecl = np.kron(state[0][0].conj(),state[0][0]) 
+        bvecr = np.kron(state[2][0].conj(),state[2][0])
+        
+        density_matrix = [[bvecl],contractions,[bvecr]]
         
         return density_matrix
 
@@ -378,12 +375,21 @@ class thermal_state(object):
             
             L = len(self[1]) # length of repetitions of unit cell in main network chain (for density matrix).
             L_MPO = len(MPO[1]) # length of repetitions of unit cell for inserted MPO structure.
-            chi_tot = int(np.sqrt((np.tensordot(self[1][0],MPO[1][0],axes=[0,2])).size)) # total bond dimension
+            # tensor dimensions
+            d_s = self[1][0][:,0,0,0].size # state physical leg dimension
+            d_MPO = MPO[1][0][:,0,0,0].size # MPO physical leg dimension
+            chi_s = self[1][0][0,:,0,0].size # state bond leg dimension
+            chi_MPO = MPO[1][0][0,:,0,0].size # MPO bond leg dimension
+
+            tensor = np.reshape(np.tensordot(self[1][0],MPO[1][0],axes=[0,2]),[d_MPO,chi_s*chi_MPO,d_s,chi_s*chi_MPO])
+            # chi_tot = int(np.sqrt(np.trace(final_tensor,axis1=0,axis2=2).size)) # total bond dimension
             
+            contraction_list = []
             for j in range(L):
                 # MPO and density matrix constractions
-                tensor = np.tensordot(self[1][j],MPO[1][j],axes=[0,2])      
-                contraction_list.append(np.reshape(tensor,[chi_tot,chi_tot]))
+                tensor1 = np.reshape(np.tensordot(self[1][0],MPO[1][0],axes=[0,2]),[d_MPO,chi_s*chi_MPO,d_s,chi_s*chi_MPO])
+                tensor2 = np.trace(tensor1,axis1=2,axis2=0)
+                contraction_list.append(tensor2)
                 
         else:
             raise ValueError('only one of "random_state", "circuit_MPS", or "density_matrix" options')
