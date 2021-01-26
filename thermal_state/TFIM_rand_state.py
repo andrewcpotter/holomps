@@ -182,8 +182,7 @@ def state_free_energy(params, circuit, method):
     method: one of "thermal_state_class" or "tenpy" options.
     """ 
     if method == 'thermal_state_class':   
-        # changing index ordering to: p_out, b_out, p_in, b_in
-        H_mat = np.swapaxes(np.swapaxes(ising_mpo(J,g,'thermal_state_class',None),0,2),2,3)
+        H_mat = ising_mpo(J,g,'thermal_state_class',None)
         chi_H = H_mat[0,:,0,0].size # size of Hamiltonian bond leg dimension
         # Hamiltonian MPO boundary vectors
         H_bvecl = TBD
