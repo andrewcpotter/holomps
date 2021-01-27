@@ -548,28 +548,13 @@ class thermal_state(object):
             
             random_state = thermal_state.network_from_cells(self,'random_state',L,None,params,bdry_vecs1,method) # random_state MPS
             Hamiltonian = thermal_state.network_from_cells(H_mat,'MPO',L,chi_H,None,bdry_vecs2,method) # Hamiltonian MPO
+            S = thermal_state.entropy(thermal_state.prob_list(self,params)) # entropy
             
             if method == 'thermal_state_class':   
-                # tensor dimensions (consistent with rank-3 structure)
-                # index ordering consistent with holoMPS-based structures
-                tensor = random_state[1][0]
-                d = tensor[:,0,0].size # physical leg dimension (for holoMPS)
-                chi = tensor[0,:,0].size # bond leg dimension (for holoMPS)
-                count = [0]*d
-            
-                tensor_list = [np.swapaxes(unitary[:,:,j,:],1,2) for j in range(d)]
-                for tensor in random_state[1]:
-                    for j in range(d):
-                        if (tensor == tensor_list[j]).all():
-                            count[j] += 1
-                    prob_list = [c/L for c in count] # list of probability weights          
-                S = thermal_state.entropy(prob_list) # entropy
                 E = thermal_state.expectation_value(random_state,'random_state',chi_H,Hamiltonian) # energy of system
                 F = E - T*S # Helmholtz free energy   
             
             elif method == 'tenpy':
-                
-                S = thermal_state.entropy(thermal_state.prob_list(self,params)) # entropy
                 E = (Hamiltonian.expectation_value(random_state)).real # energy of system
                 F = E - T*S # Helmholtz free energy
             else: 
