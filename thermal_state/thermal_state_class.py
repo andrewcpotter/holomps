@@ -565,8 +565,7 @@ class thermal_state(object):
                     prob_list = [c/L for c in count] # list of probability weights          
                 S = thermal_state.entropy(prob_list) # entropy
                 E = thermal_state.expectation_value(random_state,'random_state',chi_H,Hamiltonian) # energy of system
-                E0 = thermal_state.expectation_value(random_state,'random_state',None,None)
-                F = (E) - T*S # Helmholtz free energy   
+                F = E - T*S # Helmholtz free energy   
             
             elif method == 'tenpy':
                 
