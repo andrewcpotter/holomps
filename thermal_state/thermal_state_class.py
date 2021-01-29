@@ -383,17 +383,18 @@ class thermal_state(object):
             d_MPO = MPO[1][0][:,0,0,0].size # MPO physical leg dimension
             chi_s = self[1][0][0,:,0,0].size # state bond leg dimension
             chi_MPO = MPO[1][0][0,:,0,0].size # MPO bond leg dimension
-     
+            chi_tot = chi_s * chi_MPO # total bond leg dimension
+            
             contraction_list = []
             for j in range(L):
                 # MPO and density matrix constractions
                 tensor1 = np.tensordot(self[1][j],MPO[1][j],axes=[2,0])
                 # changing index ordering to: p_out, b_out, p_in, b_in
                 tensor2 = np.swapaxes(np.swapaxes(tensor1,2,4),2,3)
-                tensor3 = np.reshape(tensor2,[d_MPO,chi_s*chi_MPO,d_s,chi_s*chi_MPO])
+                tensor3 = np.reshape(tensor2,[d_MPO,chi_tot,d_s,chi_tot])
                 # tracing over p_out and p_in
                 tensor4 = np.trace(tensor3,axis1=0,axis2=2)
-                contraction_list.append(tensor4)
+                contraction_list.append(np.reshape(tensor4,[chi_tot,chi_tot]))
                 
         else:
             raise ValueError('only one of "random_state", "circuit_MPS", or "density_matrix" options')
