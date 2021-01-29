@@ -566,4 +566,3 @@ class thermal_state(object):
         return F
 
    
-    
