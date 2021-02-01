@@ -562,5 +562,3 @@ class thermal_state(object):
         else:
             raise ValueError('only one of "random_state" or "density_matrix" options')
         return F
-
-   
