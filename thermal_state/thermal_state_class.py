@@ -485,12 +485,10 @@ class thermal_state(object):
         --------------
         --the input assumes thermal_state_class-based prob_list--
         """
+        pr_list = np.array(prob_list)
+        new_prob_list = pr_list[pr_list > 1.e-30] # avoiding NaN in numpy.log() function
         S = 0
-        S_list = []
-        # checking purity of state
-        for p in prob_list:
-            if p != 0:
-                S_list.append(-p*np.log(p))
+        S_list = [-p*np.log(p) for p in new_prob_list]
         for j in range(len(S_list)):
             S = S + S_list[j]
         return S
