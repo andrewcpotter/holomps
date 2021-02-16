@@ -1,6 +1,7 @@
 
+
 # Sample code for Transverse Field Ising Model (TFIM) 
-# thermal holoMPS method
+# random state method
 
 import numpy as np
 import random
