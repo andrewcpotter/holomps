@@ -83,7 +83,7 @@ class model_mpo(object):
         H1 = np.einsum('abcd->cbda',H)
         return H1
     
-    def fermi_hubbard(t, U, mu):
+    def fermi_hubbard(t, U, mu, N):
         """
          Unit-cell matrix product operator of 
          spinhalf fermion Fermi-Hubbard model
@@ -114,26 +114,52 @@ class model_mpo(object):
         H[5,0] = np.array([[0.,0.,0.,0.],
                            [0.,-mu,0.,0.],
                            [0.,0.,-mu,0.],
-                           [0.,0.,0.,-2*mu + U]])
+                           [0.,0.,0.,-2*mu + U]])/N
     
         H[5,1] = np.array([[0.,0.,0.,0.],
                            [0.,0.,0.,0.],
                            [t,0.,0.,0.],
-                           [0.,-t,0.,0.]])
+                           [0.,-t,0.,0.]])/(N-1)
     
         H[5,2] = np.array([[0.,0.,-t,0.],
                            [0.,0.,0.,t],
                            [0.,0.,0.,0.],
-                           [0.,0.,0.,0.]])
+                           [0.,0.,0.,0.]])/(N-1)
     
         H[5,3] = np.array([[0.,-t,0.,0.],
                            [0.,0.,0.,0.],
                            [0.,0.,0.,-t],
-                           [0.,0.,0.,0.]])
+                           [0.,0.,0.,0.]])/(N-1)
     
         H[5,4] = np.array([[0.,0.,0.,0.],
                            [t,0.,0.,0.],
                            [0.,0.,0.,0.],
-                           [0.,0.,t,0.]])
+                           [0.,0.,t,0.]])/(N-1)
+        H1 = np.einsum('abcd->cbda',H)
+        return H1
+    
+    def xxz2(J, Delta, hz, N):
+        """
+        Unit-cell matrix product operator of anisotropic 
+        Heisenberg XXZ chain model (version 2)
+        """
+        # Pauli matrices 
+        sigmax = np.array([[0., 1], [1, 0.]])
+        sigmay = np.array([[0., -1j], [1j, 0.]])
+        sigmaz = np.array([[1, 0.], [0., -1]])
+        sigmap = sigmax + 1j*sigmay
+        sigman = sigmax - 1j*sigmay
+        id = np.eye(2)
+    
+        # structure of XXZ model MPO unit cell
+        H = np.zeros((5, 5, 2, 2), dtype=np.complex) 
+        H[0, 0] = H[4, 4] = id
+        H[1, 0] = sigmap
+        H[2, 0] = sigman
+        H[3, 0] = sigmaz
+        H[4, 0] = (hz * sigmaz)/N
+        H[4, 1] = (0.5* J * sigman)/(N - 1)
+        H[4, 2] = (0.5* J * sigmap)/(N - 1)
+        H[4, 3] = (J * Delta * sigmaz)/(N - 1)
         H1 = np.einsum('abcd->cbda',H)
         return H1
