@@ -323,7 +323,7 @@ class thermal_state(object):
                                                      None,T)
         # constructing the probability weights chain
         probs_list = L * thermal_state.prob_list(self,params,T)
-        p_matrix_chain = [np.diag(p) for p in probs_list]
+        #p_matrix_chain = [np.diag(p) for p in probs_list]
         
         # contractions of density matrix:
         contractions = [] 
@@ -342,10 +342,11 @@ class thermal_state(object):
             bvecr = np.eye(chi) 
             method = 'MPDO' # structure label
         else:
-            # finding steady-state of transfer matrix of DMPO 
+            # finding steady-state of transfer matrix of iMPDO 
             # finding tranfer matrix:
             if l_uc == 1: # if only one unitary within each unit-cell
                 transfer_mat = np.einsum('abad->bd',np.reshape(contractions[0],[d,chi**2,d,chi**2]))
+                new_contractions =  contractions
             else: # for l_uc > 1
                 W_list = [np.reshape(contractions[j],[d,chi**2,d,chi**2]) for j in range(l_uc)]
                 W_list1 = [W_list[0]]
@@ -355,7 +356,8 @@ class thermal_state(object):
                              [d**2,chi**2,d**2,chi**2])
                     W_list1 = []
                     W_list1.append(tensor)
-                transfer_mat = np.einsum('abad->bd',W_list1[0]) 
+                transfer_mat = np.einsum('abad->bd',W_list1[0]) # tranfer matrix
+                new_contractions = contractions[:-1]
             eig_vals,eig_vecs = la.eig(transfer_mat)
             idx = np.where(np.abs(1-abs(eig_vals))<1e-5)[0][0] # index of steady-state
             steady_den = np.reshape(eig_vecs[:,idx],[chi,chi]) # steady-state density matrix
@@ -364,7 +366,7 @@ class thermal_state(object):
             method = 'iMPDO' # structure label
             bvecr = np.eye(chi) 
             
-        density_matrix = [[bvecl],contractions,[bvecr],method] ## last element = structure label
+        density_matrix = [[bvecl],new_contractions,[bvecr],method] ## last element = structure label
         
         return density_matrix
 
@@ -468,7 +470,7 @@ class thermal_state(object):
                     #s_right = np.reshape(np.einsum('aejbcd,ej->abcd',self[1][-1],self[2][0]),[d,d,chi**2])
             
                 elif self[3] == 'iMPDO':  # left and right contractions infinite structure 
-                    s_left = np.reshape(np.einsum('abcdej,ej->abcd',self[1][0],self[0][0]),[d,chi**2,d])
+                    s_left = np.reshape(np.einsum('abcdee,ee->abcd',self[1][0],self[0][0]),[d,chi**2,d])
                     #s_right = np.reshape(np.einsum('aeebcd,ee->abcd',self[1][-1],self[3][0]),[d_s,d_s,chi_s**2])
                     s_right = np.reshape(np.einsum('aeebcd->abcd',self[1][-1]),[d,d,chi**2])
                 
@@ -673,7 +675,7 @@ class thermal_state(object):
         
         # list of entropies at each site (within unit-cell)
         s_list2 = [sum(s_list1[j:j+d]) for d,j in zip(d_list,range(0,len(s_list1),d))]
-        s= sum(s_list2) # entropy
+        s = sum(s_list2)/l_uc # entropy
         return s
 
     def free_energy(self, params, 
@@ -681,7 +683,8 @@ class thermal_state(object):
                     Hamiltonian, T,
                     chi_H=None, bdry_vecs1=None, 
                     bdry_vecs2=None, method=None, 
-                    N_sample=None):
+                    N_sample=None,
+                    S=None):
         """
         Returns the Helmholtz free energy of a thermal density matrix structure 
         or thermal holographic matrix product state.
@@ -710,7 +713,9 @@ class thermal_state(object):
            ("MPO_tenpy" is set when MPO structure is already constructed in TenPy).
         N_sample: int
            Number of samples for averaging energy of thermal random holoMPS (only for 
-           "random_state" option.    
+           "random_state" option.  
+        S: float
+           Optional entropy setting (if set to None, returns thermal_state-based entropy).
         """   
         l_uc = len(self) # length of unit-cell
         N = l_uc * L # total number of sites
@@ -718,7 +723,8 @@ class thermal_state(object):
         # for density-matrix-based structures:
         if state_type == 'density_matrix':
             
-            S = thermal_state.entropy(thermal_state.prob_list(self,params,T)) # entropy
+            if S == None:
+                S = thermal_state.entropy(thermal_state.prob_list(self,params,T)) # entropy
              
             if method == 'method_I': # first method of computing density matrix structures free energy
                 
@@ -753,7 +759,8 @@ class thermal_state(object):
         elif state_type == 'random_state':
             
             N = l_uc * L # total number of sites
-            S = thermal_state.entropy(thermal_state.prob_list(self,params,T)) # entropy
+            if S == None:
+                S = thermal_state.entropy(thermal_state.prob_list(self,params,T)) # entropy
             
              # computing free energy using thermal state library built-in functions
             if method == 'thermal_state_class':
